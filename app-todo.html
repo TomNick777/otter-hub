@@ -409,20 +409,20 @@
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
 
-    /* ── User Avatar (outside bottom-nav) ── */
+    /* ── User Avatar (inside bottom-nav, same row) ── */
     .user-avatar-wrap {
-      position: fixed;
-      bottom: 24px;
-      right: calc(50% + 280px + 12px);
-      z-index: 201;
+      display: flex;
+      align-items: center;
+      margin-left: 6px;
+      flex-shrink: 0;
     }
     .user-avatar-btn {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: var(--bottom-nav-h, 56px);
-      height: var(--bottom-nav-h, 56px);
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: rgba(16,16,26,0.92);
       backdrop-filter: blur(24px);
@@ -432,9 +432,9 @@
       padding: 0;
       box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
     }
-    .user-avatar-btn:hover { transform: scale(1.05); }
+    .user-avatar-btn:hover { transform: scale(1.06); }
     .user-avatar-icon {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       line-height: 1;
       pointer-events: none;
       position: relative;
@@ -538,15 +538,13 @@
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
   </a>
-</div>
-
-  <!-- User Avatar / Settings (outside bottom-nav) -->
   <div class="user-avatar-wrap" id="userAvatarWrap">
     <div class="user-avatar-btn" id="userAvatarBtn" onclick="openSettings()" title="设置">
       <span class="user-avatar-icon">🦦</span>
       <span class="user-avatar-ring" id="syncRing"></span>
     </div>
   </div>
+</div>
 
 <!-- Add Modal -->
 <div class="modal-overlay" id="addModal">

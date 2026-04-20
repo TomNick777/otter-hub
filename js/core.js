@@ -55,6 +55,7 @@ let state = {
   data:    null,
   isSyncing: false,
   listeners: [],
+  syncListeners: [],
   offlineQueue: []
 };
 
@@ -485,7 +486,11 @@ function updateBgUrl(url) {
 
 function onUpdate(fn) { state.listeners.push(fn); return () => { state.listeners = state.listeners.filter(f => f !== fn); }; }
 function notifyListeners(event, data) { state.listeners.forEach(fn => { try { fn(event, data); } catch(e) { console.error(e); } }); }
-function notifySyncStatus(status) { notifyListeners('sync:' + status, {}); }
+function notifySyncStatus(status) {
+  notifyListeners('sync:' + status, {});
+  state.syncListeners.forEach(fn => { try { fn(status); } catch(e) { console.error(e); } });
+}
+function addSyncListener(fn) { state.syncListeners.push(fn); return () => { state.syncListeners = state.syncListeners.filter(f => f !== fn); }; }
 
 // ── Toast ────────────────────────────────────────────────
 
@@ -527,7 +532,7 @@ function removeToast(toast) {
 // ── 导出 ─────────────────────────────────────────────────
 
 window.OtterHub = {
-  init, login, logout, syncNow,
+  init, login, logout, syncNow, addSyncListener,
   isOnline,
   getData, setData,
   // 状态

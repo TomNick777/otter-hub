@@ -507,27 +507,50 @@
     .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); }
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
-    /* ── User Avatar Button ── */
+    /* ── User Avatar (outside bottom-nav) ── */
+    .user-avatar-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: calc(50% + 280px + 12px);
+      z-index: 201;
+    }
     .user-avatar-btn {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 40px;
-      height: 40px;
+      width: var(--bottom-nav-h, 56px);
+      height: var(--bottom-nav-h, 56px);
       border-radius: 50%;
-      background: var(--bg-elevated);
-      border: 2px solid var(--border);
+      background: rgba(16,16,26,0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
       cursor: pointer;
-      transition: transform var(--duration-fast), border-color var(--duration-fast);
-      flex-shrink: 0;
+      transition: transform var(--duration-fast);
       padding: 0;
-      margin-left: 4px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
     }
-    .user-avatar-btn:hover {
-      transform: scale(1.08);
-      border-color: var(--accent-lime, #CAFF04);
+    .user-avatar-btn:hover { transform: scale(1.05); }
+    .user-avatar-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      pointer-events: none;
+      position: relative;
+      z-index: 1;
     }
-    .user-avatar-icon { font-size: 1.1rem; line-height: 1; pointer-events: none; }
+    /* Sync ring */
+    .user-avatar-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      transition: border-color 0.3s ease;
+      pointer-events: none;
+    }
+    .user-avatar-ring.syncing { border-color: #ef4444; }
+    .user-avatar-ring.synced  { border-color: #22c55e; }
+    .user-avatar-ring.error   { border-color: #f97316; }
+
 
     /* Modal */
     .modal-overlay {
@@ -845,11 +868,15 @@
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
   </a>
-  <!-- User Avatar / Settings -->
-  <button class="user-avatar-btn" onclick="openSettings()" title="设置">
-    <span class="user-avatar-icon">🦦</span>
-  </button>
-</div><!-- /bottom-nav -->
+</div>
+
+  <!-- User Avatar / Settings (outside bottom-nav) -->
+  <div class="user-avatar-wrap" id="userAvatarWrap">
+    <div class="user-avatar-btn" id="userAvatarBtn" onclick="openSettings()" title="设置">
+      <span class="user-avatar-icon">🦦</span>
+      <span class="user-avatar-ring" id="syncRing"></span>
+    </div>
+  </div>
 
 <!-- Context Menu -->
 <div class="context-menu" id="contextMenu">
@@ -1381,5 +1408,25 @@ loadKPIs();
   grid.innerHTML = html;
 })();
 </script>
+
+    <script>
+    // Sync ring: listen to core sync events
+    (function() {
+      function updateRing(cls) {
+        const ring = document.getElementById('syncRing');
+        if (ring) {
+          ring.className = 'user-avatar-ring ' + (cls || '');
+        }
+      }
+      if (typeof core !== 'undefined') {
+        core.addSyncListener(function(status) {
+          if (status === 'syncing') updateRing('syncing');
+          else if (status === 'synced') updateRing('synced');
+          else if (status === 'error') updateRing('error');
+          else updateRing('');
+        });
+      }
+    })();
+    </script>
 </body>
 </html>

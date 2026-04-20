@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base: #05050A;
+      --bg-surface: #0C0C14;
+      --bg-card: #10101A;
+      --bg-card-hover: #14141F;
+      --bg-elevated: #18182A;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --border-accent: rgba(202,255,4,0.3);
+      --accent-lime: #CAFF04;
+      --accent-lime-dim: rgba(202,255,4,0.12);
+      --accent-lime-glow: rgba(202,255,4,0.06);
+      --accent-purple: #A78BFA;
+      --accent-purple-dim: rgba(167,139,250,0.12);
+      --accent-blue: #60A5FA;
+      --text: #F0F0F8;
+      --text-secondary: #9090B0;
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .bg-ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    .bg-orb--lime {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(202,255,4,0.12) 0%, transparent 70%);
+      top: -200px; right: -100px;
+      animation: float 12s ease-in-out infinite;
+    }
+    .bg-orb--purple {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      animation: float 16s ease-in-out infinite reverse;
+    }
+    .bg-orb--blue {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(96,165,250,0.06) 0%, transparent 70%);
+      top: 40%; left: 40%;
+      animation: float 20s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .layout {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 120px;
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      cursor: context-menu;
+    }
+    .logo-text span { color: var(--accent-lime); }
+
+    .time-display {
+      margin-top: 16px;
+      text-align: center;
+    }
+    .time-main {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .time-date {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .search-section {
+      max-width: 640px;
+      margin: 0 auto 32px;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 16px 24px;
+      transition: var(--transition);
+    }
+    .search-box:focus-within {
+      border-color: var(--accent-lime);
+      box-shadow: 0 0 0 3px var(--accent-lime-glow);
+    }
+    .search-box input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: var(--font);
+    }
+    .search-box input::placeholder { color: var(--text-secondary); }
+    .search-icon { font-size: 1.2rem; color: var(--text-secondary); }
+    .search-engines {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    .eng-btn {
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .eng-btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .eng-btn.active {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+
+    .shortcuts-section {
+      max-width: 640px;
+      margin: 0 auto 40px;
+    }
+    .shortcuts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .shortcuts-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+    }
+    .btn-add {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: var(--transition);
+    }
+    .btn-add:hover { border-color: var(--accent-lime); color: var(--accent-lime); background: var(--accent-lime-dim); }
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+    }
+    .shortcut-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      position: relative;
+    }
+    .shortcut-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+    .shortcut-icon { font-size: 2rem; margin-bottom: 8px; }
+    .shortcut-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+
+    /* Context menu */
+    .context-menu {
+      position: fixed;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 8px 0;
+      z-index: 500;
+      box-shadow: var(--shadow-lg);
+      display: none;
+    }
+    .context-menu.show { display: block; }
+    .context-menu__item {
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .context-menu__item:hover { background: var(--bg-card); }
+    .context-menu__item--danger { color: #F87171; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .kpi-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    .kpi-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .kpi-card__icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+    .kpi-card--lime .kpi-card__icon { background: var(--accent-lime-dim); }
+    .kpi-card--purple .kpi-card__icon { background: var(--accent-purple-dim); }
+    .kpi-card--blue .kpi-card__icon { background: rgba(96,165,250,0.12); }
+    .kpi-card--green .kpi-card__icon { background: rgba(74,222,128,0.12); }
+    .kpi-card__value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .kpi-card--lime .kpi-card__value { color: var(--accent-lime); }
+    .kpi-card--purple .kpi-card__value { color: var(--accent-purple); }
+    .kpi-card--blue .kpi-card__value { color: var(--accent-blue); }
+    .kpi-card--green .kpi-card__value { color: #4ADE80; }
+    .kpi-card__label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .kpi-card__bar {
+      margin-top: 16px;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .kpi-card__bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .kpi-card--lime .kpi-card__bar-fill { background: linear-gradient(90deg, var(--accent-lime), rgba(202,255,4,0.4)); }
+    .kpi-card--purple .kpi-card__bar-fill { background: linear-gradient(90deg, var(--accent-purple), rgba(167,139,250,0.4)); }
+    .kpi-card--blue .kpi-card__bar-fill { background: linear-gradient(90deg, var(--accent-blue), rgba(96,165,250,0.4)); }
+    .kpi-card--green .kpi-card__bar-fill { background: linear-gradient(90deg, #4ADE80, rgba(74,222,128,0.4)); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 260px;
+    }
+    .chart-canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .chart-legend {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: auto repeat(52, 1fr);
+      gap: 3px;
+      overflow-x: auto;
+    }
+    .heatmap-label {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      padding-right: 6px;
+      white-space: nowrap;
+    }
+    .heatmap-cell {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      transition: transform 0.15s;
+      cursor: pointer;
+    }
+    .heatmap-cell:hover { transform: scale(1.5); }
+
+    .activity-list { display: flex; flex-direction: column; gap: 2px; }
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .activity-item:hover { background: var(--bg-card-hover); }
+    .activity-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-name { font-size: 0.875rem; font-weight: 600; }
+    .activity-desc { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .activity-time { font-size: 0.7rem; color: var(--text-secondary); }
+    .activity-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+    .activity-badge--lime { background: var(--accent-lime-dim); color: var(--accent-lime); }
+    .activity-badge--purple { background: var(--accent-purple-dim); color: var(--accent-purple); }
+    .activity-badge--blue { background: rgba(96,165,250,0.15); color: var(--accent-blue); }
+    .activity-badge--gray { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+
+    .section-header {
+      margin: 40px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+    }
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16,16,26,0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 8px;
+      z-index: 200;
+      box-shadow: var(--shadow-lg);
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: var(--transition);
+      min-width: 72px;
+    }
+    .bottom-nav .nav-btn:hover { background: var(--bg-card); }
+    .bottom-nav .nav-btn.active { background: var(--bg-elevated); }
+    .bottom-nav .nav-icon { font-size: 1.2rem; }
+    .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); }
+    .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 400;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { border-color: var(--border-strong); color: var(--text); }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-lime);
+      box-shadow: 0 0 0 3px var(--accent-lime-glow);
+    }
+    .emoji-picker {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .emoji-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .emoji-btn:hover { border-color: var(--border-strong); }
+    .emoji-btn.active { border-color: var(--accent-lime); background: var(--accent-lime-dim); }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .btn {
+      padding: 12px 20px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      flex: 1;
+      justify-content: center;
+    }
+    .btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn--primary {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+    .btn--primary:hover { background: var(--accent-lime); color: #05050A; }
+
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .layout { padding: 24px 16px 120px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .kpi-card { padding: 20px; }
+      .kpi-card__value { font-size: 1.6rem; }
+      .bottom-nav { width: calc(100% - 32px); justify-content: space-around; }
+      .bottom-nav .nav-btn { min-width: unset; padding: 10px 14px; }
+      .bottom-nav .nav-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-ambient">
+  <div class="bg-orb bg-orb--lime"></div>
+  <div class="bg-orb bg-orb--purple"></div>
+  <div class="bg-orb bg-orb--blue"></div>
+</div>
+
+<div class="layout">
+
+  <!-- Logo & Time -->
+  <div class="logo-section">
+    <div class="logo-text" id="logoText" oncontextmenu="openSettings(event)">Otter<span>Hub</span></div>
+    <div class="time-display">
+      <div class="time-main" id="timeMain">--:--:--</div>
+      <div class="time-date" id="timeDate">加载中...</div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-section">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="搜索..." autocomplete="off">
+    </div>
+    <div class="search-engines">
+      <button class="eng-btn active" id="engBing" onclick="setEngine('bing')">Bing</button>
+      <button class="eng-btn" id="engBaidu" onclick="setEngine('baidu')">百度</button>
+      <button class="eng-btn" id="engGoogle" onclick="setEngine('google')">Google</button>
+    </div>
+  </div>
+
+  <!-- Shortcuts -->
+  <div class="shortcuts-section">
+    <div class="shortcuts-header">
+      <span class="shortcuts-title">快捷方式</span>
+      <button class="btn-add" onclick="openAddShortcut()" title="添加快捷方式">+</button>
+    </div>
+    <div class="shortcuts-grid" id="shortcutsGrid"></div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">📊 关键指标</span>
+    <div class="section-line"></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--lime">
+      <div class="kpi-card__header">
+        <div class="kpi-card__icon">📋</div>
+      </div>
+      <div class="kpi-card__value" id="kpiTodo">—</div>
+      <div class="kpi-card__label">待办完成</div>
+      <div class="kpi-card__bar"><div class="kpi-card__bar-fill" id="barTodo" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card kpi-card--purple">
+      <div class="kpi-card__header">
+        <div class="kpi-card__icon">🎯</div>
+      </div>
+      <div class="kpi-card__value" id="kpiHabits">—</div>
+      <div class="kpi-card__label">今日打卡</div>
+      <div class="kpi-card__bar"><div class="kpi-card__bar-fill" id="barHabits" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card kpi-card--blue">
+      <div class="kpi-card__header">
+        <div class="kpi-card__icon">💰</div>
+      </div>
+      <div class="kpi-card__value" id="kpiBalance">—</div>
+      <div class="kpi-card__label">账户余额</div>
+      <div class="kpi-card__bar"><div class="kpi-card__bar-fill" id="barBalance" style="width:0%"></div></div>
+    </div>
+    <div class="kpi-card kpi-card--green">
+      <div class="kpi-card__header">
+        <div class="kpi-card__icon">🔥</div>
+      </div>
+      <div class="kpi-card__value" id="kpiStreak">—</div>
+      <div class="kpi-card__label">累计连续打卡</div>
+      <div class="kpi-card__bar"><div class="kpi-card__bar-fill" id="barStreak" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title__dot" style="background:var(--accent-lime)"></div>
+          每周数据趋势
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="mainChart" class="chart-canvas"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-lime)"></div>
+          完成数
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--accent-purple)"></div>
+          目标
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title__dot" style="background:var(--accent-purple)"></div>
+          最新动态
+        </div>
+      </div>
+      <div class="activity-list" id="activityList">
+        <div class="activity-item">
+          <div class="activity-avatar" style="background:linear-gradient(135deg,#CAFF04,#A78BFA)">T</div>
+          <div class="activity-body">
+            <div class="activity-name">完成月度账目结算</div>
+            <div class="activity-desc">本月收支记录已归档</div>
+          </div>
+          <div class="activity-meta">
+            <span class="activity-time">刚刚</span>
+            <span class="activity-badge activity-badge--lime">✓ 完成</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar">📖</div>
+          <div class="activity-body">
+            <div class="activity-name">晨读习惯已打卡</div>
+            <div class="activity-desc">连续第 12 天完成</div>
+          </div>
+          <div class="activity-meta">
+            <span class="activity-time">2h前</span>
+            <span class="activity-badge activity-badge--purple">🎯 打卡</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar">💰</div>
+          <div class="activity-body">
+            <div class="activity-name">支出记录：¥128.00</div>
+            <div class="activity-desc">餐饮 · 公司楼下餐厅</div>
+          </div>
+          <div class="activity-meta">
+            <span class="activity-time">4h前</span>
+            <span class="activity-badge activity-badge--blue">💸 支出</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-avatar">📋</div>
+          <div class="activity-body">
+            <div class="activity-name">完成 3 件待办事项</div>
+            <div class="activity-desc">准备周报 · 发送邮件 · 团队会议</div>
+          </div>
+          <div class="activity-meta">
+            <span class="activity-time">昨天</span>
+            <span class="activity-badge activity-badge--gray">已完成</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Heatmap -->
+  <div class="section-header">
+    <span class="section-title">🔥 打卡热力图</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="card" style="margin-bottom: 0">
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-btn active">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">主页</span>
+  </a>
+  <a href="app-todo.html" class="nav-btn">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Todo</span>
+  </a>
+  <a href="app-habits.html" class="nav-btn">
+    <span class="nav-icon">🎯</span>
+    <span class="nav-label">Habit</span>
+  </a>
+  <a href="app-ledger.html" class="nav-btn">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Ledger</span>
+  </a>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="contextMenu">
+  <div class="context-menu__item" onclick="editShortcut()">
+    <span>✏️</span> 编辑
+  </div>
+  <div class="context-menu__item context-menu__item--danger" onclick="deleteShortcut()">
+    <span>🗑️</span> 删除
+  </div>
+</div>
+
+<!-- Add/Edit Shortcut Modal -->
+<div class="modal-overlay" id="shortcutModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">添加快捷方式</div>
+      <button class="modal-close" onclick="closeShortcutModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">图标</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">名称</label>
+      <input type="text" class="form-input" id="inputName" placeholder="例如：OtterTodo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">链接</label>
+      <input type="text" class="form-input" id="inputUrl" placeholder="例如：app-todo.html 或 https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeShortcutModal()">取消</button>
+      <button class="btn btn--primary" onclick="saveShortcut()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 设置</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">🎨 主题风格</label>
+      <div class="theme-toggle">
+        <button class="theme-btn active--dark" id="themeDark" onclick="setTheme('dark')">
+          🌙 深色
+        </button>
+        <button class="theme-btn" id="themeLight" onclick="setTheme('light')">
+          ☀️ 浅色
+        </button>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">🔑 GitHub Token（用于 Gist 同步）</label>
+      <input type="password" class="form-input" id="inputGithubToken" placeholder="ghp_xxxx...">
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px">
+        用于将数据同步到 GitHub Gist，实现跨设备数据同步
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">📝 Gist ID（可选）</label>
+      <input type="text" class="form-input" id="inputGistId" placeholder="留空则自动创建新 Gist">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn" onclick="testGithubConnection()">测试连接</button>
+      <button class="btn btn--primary" onclick="saveSettings()">保存设置</button>
+    </div>
+    <div id="settingsStatus" style="font-size:0.75rem;color:var(--text-secondary);margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<style>
+.theme-toggle {
+  display: flex;
+  gap: 8px;
+}
+.theme-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.theme-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.theme-btn.active--dark { background: rgba(255,255,255,0.08); border-color: var(--border-strong); color: var(--text); }
+.theme-btn.active--light { background: var(--accent-lime-dim); border-color: var(--border-accent); color: var(--accent-lime); }
+</style>
+
+<script>
+/* ── Search ── */
+let searchEngine = 'bing';
+const SEARCH_URLS = {
+  bing: 'https://www.bing.com/search?q=',
+  baidu: 'https://www.baidu.com/s?wd=',
+  google: 'https://www.google.com/search?q='
+};
+function setEngine(e) {
+  searchEngine = e;
+  ['Bing','Baidu','Google'].forEach(eng => {
+    const btn = document.getElementById('eng'+eng);
+    if (btn) btn.classList.toggle('active', eng.toLowerCase() === e);
+  });
+}
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    const q = this.value.trim();
+    if (q) window.open(SEARCH_URLS[searchEngine] + encodeURIComponent(q), '_blank');
+  }
+});
+
+/* ── Time Display ── */
+function updateTime() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('timeMain').textContent = `${h}:${m}:${s}`;
+  
+  const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+  const y = now.getFullYear();
+  const mo = now.getMonth() + 1;
+  const d = now.getDate();
+  const wd = weekdays[now.getDay()];
+  document.getElementById('timeDate').textContent = `${y}年${mo}月${d}日 ${wd}`;
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+/* ── Shortcuts ── */
+const SHORTCUT_KEY = 'otter-shortcuts';
+const EMOJIS = ['📋','🎯','💰','📊','🏠','📖','🏃','🎵','🎨','✈️','🎮','☕'];
+let shortcuts = [];
+let editingId = null;
+let selectedEmoji = EMOJIS[0];
+
+function loadShortcuts() {
+  const data = localStorage.getItem(SHORTCUT_KEY);
+  shortcuts = data ? JSON.parse(data) : [
+    { id: '1', emoji: '📋', name: 'OtterTodo', url: 'app-todo.html' },
+    { id: '2', emoji: '🎯', name: 'OtterHabit', url: 'app-habits.html' },
+    { id: '3', emoji: '💰', name: 'OtterLedger', url: 'app-ledger.html' }
+  ];
+  renderShortcuts();
+}
+
+function saveShortcuts() {
+  localStorage.setItem(SHORTCUT_KEY, JSON.stringify(shortcuts));
+}
+
+function renderShortcuts() {
+  const grid = document.getElementById('shortcutsGrid');
+  grid.innerHTML = shortcuts.map(s => `
+    <a href="${escapeHtml(s.url)}" class="shortcut-card" data-id="${s.id}" oncontextmenu="showContextMenu(event, '${s.id}')">
+      <div class="shortcut-icon">${s.emoji}</div>
+      <div class="shortcut-label">${escapeHtml(s.name)}</div>
+    </a>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Context menu */
+let contextTargetId = null;
+
+function showContextMenu(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  contextTargetId = id;
+  const menu = document.getElementById('contextMenu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('show');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('contextMenu').classList.remove('show');
+});
+
+function editShortcut() {
+  const s = shortcuts.find(x => x.id === contextTargetId);
+  if (!s) return;
+  editingId = contextTargetId;
+  document.getElementById('modalTitle').textContent = '编辑快捷方式';
+  document.getElementById('inputName').value = s.name;
+  document.getElementById('inputUrl').value = s.url;
+  selectedEmoji = s.emoji;
+  renderEmojiPicker();
+  document.getElementById('shortcutModal').classList.add('open');
+}
+
+function deleteShortcut() {
+  if (!contextTargetId) return;
+  shortcuts = shortcuts.filter(s => s.id !== contextTargetId);
+  saveShortcuts();
+  renderShortcuts();
+}
+
+/* Add/Edit Modal */
+function openAddShortcut() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '添加快捷方式';
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputUrl').value = '';
+  selectedEmoji = EMOJIS[0];
+  renderEmojiPicker();
+  document.getElementById('shortcutModal').classList.add('open');
+}
+
+function closeShortcutModal() {
+  document.getElementById('shortcutModal').classList.remove('open');
+}
+
+function renderEmojiPicker() {
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn ${e === selectedEmoji ? 'active' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiPicker();
+}
+
+function saveShortcut() {
+  const name = document.getElementById('inputName').value.trim();
+  const url = document.getElementById('inputUrl').value.trim();
+  if (!name || !url) return alert('请填写名称和链接');
+  if (editingId) {
+    const s = shortcuts.find(x => x.id === editingId);
+    if (s) { s.emoji = selectedEmoji; s.name = name; s.url = url; }
+  } else {
+    shortcuts.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      emoji: selectedEmoji,
+      name,
+      url
+    });
+  }
+  saveShortcuts();
+  renderShortcuts();
+  closeShortcutModal();
+}
+
+/* ── Settings ── */
+const SETTINGS_KEY = 'otter-settings';
+let settings = {
+  theme: 'dark',
+  githubToken: '',
+  gistId: ''
+};
+
+function loadSettings() {
+  const data = localStorage.getItem(SETTINGS_KEY);
+  if (data) {
+    settings = { ...settings, ...JSON.parse(data) };
+  }
+  applyTheme(settings.theme);
+  document.getElementById('inputGithubToken').value = settings.githubToken || '';
+  document.getElementById('inputGistId').value = settings.gistId || '';
+}
+
+function saveSettingsToStorage() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function openSettings(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  loadSettings();
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+function setTheme(theme) {
+  settings.theme = theme;
+  document.getElementById('themeDark').className = 'theme-btn' + (theme === 'dark' ? ' active--dark' : '');
+  document.getElementById('themeLight').className = 'theme-btn' + (theme === 'light' ? ' active--light' : '');
+  applyTheme(theme);
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.documentElement.style.setProperty('--bg-base', '#F5F5FA');
+    document.documentElement.style.setProperty('--bg-surface', '#FFFFFF');
+    document.documentElement.style.setProperty('--bg-card', '#FFFFFF');
+    document.documentElement.style.setProperty('--bg-card-hover', '#F0F0F5');
+    document.documentElement.style.setProperty('--bg-elevated', '#FFFFFF');
+    document.documentElement.style.setProperty('--border', 'rgba(0,0,0,0.08)');
+    document.documentElement.style.setProperty('--border-strong', 'rgba(0,0,0,0.15)');
+    document.documentElement.style.setProperty('--text', '#1A1A2E');
+    document.documentElement.style.setProperty('--text-secondary', '#6B6B8A');
+  } else {
+    document.documentElement.style.setProperty('--bg-base', '#05050A');
+    document.documentElement.style.setProperty('--bg-surface', '#0C0C14');
+    document.documentElement.style.setProperty('--bg-card', '#10101A');
+    document.documentElement.style.setProperty('--bg-card-hover', '#14141F');
+    document.documentElement.style.setProperty('--bg-elevated', '#18182A');
+    document.documentElement.style.setProperty('--border', 'rgba(255,255,255,0.06)');
+    document.documentElement.style.setProperty('--border-strong', 'rgba(255,255,255,0.12)');
+    document.documentElement.style.setProperty('--text', '#F0F0F8');
+    document.documentElement.style.setProperty('--text-secondary', '#9090B0');
+  }
+}
+
+function saveSettings() {
+  settings.githubToken = document.getElementById('inputGithubToken').value.trim();
+  settings.gistId = document.getElementById('inputGistId').value.trim();
+  saveSettingsToStorage();
+  document.getElementById('settingsStatus').innerHTML = '<span style="color:var(--accent-lime)">✓ 设置已保存</span>';
+  setTimeout(() => {
+    document.getElementById('settingsStatus').innerHTML = '';
+  }, 2000);
+}
+
+async function testGithubConnection() {
+  const token = document.getElementById('inputGithubToken').value.trim();
+  const statusEl = document.getElementById('settingsStatus');
+  
+  if (!token) {
+    statusEl.innerHTML = '<span style="color:#F87171">请先输入 GitHub Token</span>';
+    return;
+  }
+  
+  statusEl.innerHTML = '正在测试连接...';
+  
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': `token ${token}` }
+    });
+    
+    if (res.ok) {
+      const user = await res.json();
+      statusEl.innerHTML = `<span style="color:var(--accent-lime)">✓ 连接成功，用户: ${user.login}</span>`;
+    } else {
+      statusEl.innerHTML = '<span style="color:#F87171">✗ Token 无效或已过期</span>';
+    }
+  } catch (err) {
+    statusEl.innerHTML = '<span style="color:#F87171">✗ 网络错误</span>';
+  }
+}
+
+// Load settings on page load
+loadSettings();
+loadShortcuts();
+
+/* ── KPI from localStorage ── */
+function loadKPIs() {
+  const todo = JSON.parse(localStorage.getItem('otter-todo') || '{"tasks":[]}');
+  const habits = JSON.parse(localStorage.getItem('otter-habits') || '{"habits":[],"checkins":{}}');
+  const ledger = JSON.parse(localStorage.getItem('otter-ledger') || '{"records":[]}');
+  const today = new Date().toISOString().split('T')[0];
+  const todayTasks = (todo.tasks || []).filter(t => !t.completed).length;
+  const totalTasks = (todo.tasks || []).length;
+  const doneTasks = totalTasks - todayTasks;
+  const allHabits = (habits.habits || []);
+  const checkins = (habits.checkins || {});
+  const todayCheckins = (checkins[today] || []).length;
+  const balance = (ledger.records || []).reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
+
+  document.getElementById('kpiTodo').textContent = `${doneTasks}/${totalTasks}`;
+  document.getElementById('kpiHabits').textContent = `${todayCheckins}/${allHabits.length}`;
+  document.getElementById('kpiBalance').textContent = balance >= 0 ? `¥${balance.toLocaleString('zh-CN',{minimumFractionDigits:0})}` : `-¥${Math.abs(balance).toLocaleString('zh-CN',{minimumFractionDigits:0})}`;
+
+  let totalStreak = 0;
+  allHabits.forEach(h => {
+    let s = 0, d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const ds = new Date(d); ds.setDate(ds.getDate() - i);
+      const dsStr = ds.toISOString().split('T')[0];
+      if ((checkins[dsStr]||[]).includes(h.id)) s++;
+      else if (i > 0) break;
+    }
+    totalStreak += s;
+  });
+  document.getElementById('kpiStreak').textContent = totalStreak;
+
+  setTimeout(() => {
+    document.getElementById('barTodo').style.width = totalTasks ? (doneTasks/totalTasks*100)+'%' : '0%';
+    document.getElementById('barHabits').style.width = allHabits.length ? (todayCheckins/allHabits.length*100)+'%' : '0%';
+    document.getElementById('barBalance').style.width = Math.min(100, Math.max(5, Math.abs(balance)/1000*100))+'%';
+    document.getElementById('barStreak').style.width = Math.min(100, totalStreak*5)+'%';
+  }, 300);
+}
+loadKPIs();
+
+/* ── Chart ── */
+(function() {
+  const canvas = document.getElementById('mainChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const labels = ['周一','周二','周三','周四','周五','周六','周日'];
+  const data1 = [65, 78, 52, 88, 94, 73, 85];
+  const data2 = [70, 75, 80, 85, 80, 88, 90];
+
+  function draw() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    const W = rect.width, H = rect.height;
+    const PT = 16, PB = 32;
+    const chartH = H - PT - PB;
+    const stepX = W / (labels.length - 1);
+    const bottomY = PT + chartH;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i <= 4; i++) {
+      const y = PT + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.stroke();
+    }
+
+    // Line 1
+    ctx.beginPath();
+    data1.forEach((v, i) => {
+      const x = i * stepX;
+      const y = PT + (1 - v/100) * chartH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#CAFF04';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Line 2
+    ctx.beginPath();
+    data2.forEach((v, i) => {
+      const x = i * stepX;
+      const y = PT + (1 - v/100) * chartH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = '#A78BFA';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Dots
+    data1.forEach((v, i) => {
+      const x = i * stepX;
+      const y = PT + (1 - v/100) * chartH;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI*2);
+      ctx.fillStyle = '#CAFF04';
+      ctx.fill();
+    });
+    data2.forEach((v, i) => {
+      const x = i * stepX;
+      const y = PT + (1 - v/100) * chartH;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI*2);
+      ctx.fillStyle = '#A78BFA';
+      ctx.fill();
+    });
+
+    // X labels
+    labels.forEach((l, i) => {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '11px Plus Jakarta Sans';
+      ctx.textAlign = 'center';
+      ctx.fillText(l, i * stepX, bottomY + 18);
+    });
+  }
+
+  draw();
+  window.addEventListener('resize', draw);
+})();
+
+/* ── Heatmap ── */
+(function() {
+  const grid = document.getElementById('heatmapGrid');
+  if (!grid) return;
+  const habits = JSON.parse(localStorage.getItem('otter-habits') || '{"checkins":{}}');
+  const checkins = habits.checkins || {};
+  const dayLabels = ['','一','','三','','五',''];
+  const today = new Date();
+  const oneYearAgo = new Date(today);
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const totalDays = Math.ceil((today - oneYearAgo) / (1000*60*60*24));
+  const startDayOfWeek = oneYearAgo.getDay() || 7;
+
+  let html = '';
+  for (let d = 0; d < 7; d++) {
+    html += `<div class="heatmap-label">${dayLabels[d]||''}</div>`;
+  }
+  for (let w = 0; w < 52; w++) {
+    for (let d = 0; d < 7; d++) {
+      const dayIdx = w * 7 + d - (startDayOfWeek - 1);
+      if (dayIdx < 0 || dayIdx >= totalDays) {
+        html += `<div style="width:12px;height:12px"></div>`;
+        continue;
+      }
+      const cellDate = new Date(oneYearAgo);
+      cellDate.setDate(cellDate.getDate() + dayIdx);
+      const ds = cellDate.toISOString().split('T')[0];
+      const count = (checkins[ds] || []).length;
+      let color;
+      if (count === 0) color = 'rgba(255,255,255,0.05)';
+      else if (count === 1) color = 'rgba(202,255,4,0.25)';
+      else if (count === 2) color = 'rgba(202,255,4,0.5)';
+      else color = '#CAFF04';
+      html += `<div class="heatmap-cell" style="background:${color}" title="${ds} · ${count}个打卡"></div>`;
+    }
+  }
+  grid.innerHTML = html;
+})();
+</script>
+</body>
+</html>

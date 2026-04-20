@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterHabit</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base: #05050A;
+      --bg-surface: #0C0C14;
+      --bg-card: #10101A;
+      --bg-card-hover: #14141F;
+      --bg-elevated: #18182A;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --border-accent: rgba(202,255,4,0.3);
+      --accent-lime: #CAFF04;
+      --accent-lime-dim: rgba(202,255,4,0.12);
+      --accent-lime-glow: rgba(202,255,4,0.06);
+      --accent-purple: #A78BFA;
+      --accent-purple-dim: rgba(167,139,250,0.12);
+      --accent-blue: #60A5FA;
+      --text: #F0F0F8;
+      --text-secondary: #9090B0;
+      --text-tertiary: #5050708;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Ambient background ── */
+    .bg-ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    .bg-orb--lime {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(202,255,4,0.12) 0%, transparent 70%);
+      top: -200px; right: -100px;
+      animation: float 12s ease-in-out infinite;
+    }
+    .bg-orb--purple {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      animation: float 16s ease-in-out infinite reverse;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── Layout ── */
+    .layout {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 120px;
+    }
+
+    /* ── Logo ── */
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo-text span { color: var(--accent-lime); }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      text-align: center;
+    }
+    .stat-card__value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+    .stat-card--lime .stat-card__value { color: var(--accent-lime); }
+    .stat-card--purple .stat-card__value { color: var(--accent-purple); }
+    .stat-card--blue .stat-card__value { color: var(--accent-blue); }
+    .stat-card__label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ── Calendar ── */
+    .calendar-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .calendar-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .calendar-nav {
+      display: flex;
+      gap: 8px;
+    }
+    .calendar-nav__btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .calendar-nav__btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .calendar-day-label {
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 8px 0;
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+    }
+    .calendar-day:hover { border-color: var(--border-strong); }
+    .calendar-day.today {
+      background: var(--accent-lime-dim);
+      color: var(--accent-lime);
+      border-color: var(--border-accent);
+    }
+    .calendar-day.checked {
+      background: var(--accent-lime);
+      color: #05050A;
+    }
+    .calendar-day.other-month { opacity: 0.3; }
+
+    /* ── Habits grid ── */
+    .habits-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .habits-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn--primary {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+    .btn--primary:hover { background: var(--accent-lime); color: #05050A; }
+
+    .habits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .habit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .habit-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .habit-card.checked { border-color: var(--border-accent); }
+    .habit-card__header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .habit-card__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .habit-card.checked .habit-card__icon { background: var(--accent-lime-dim); }
+    .habit-card__name {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .habit-card__streak {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .habit-card__check {
+      margin-left: auto;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border-strong);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .habit-card.checked .habit-card__check {
+      background: var(--accent-lime);
+      border-color: var(--accent-lime);
+    }
+    .habit-card__check-icon { font-size: 0.9rem; color: #05050A; opacity: 0; }
+    .habit-card.checked .habit-card__check-icon { opacity: 1; }
+    .habit-card__progress {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .habit-card__bar {
+      height: 100%;
+      background: var(--accent-lime);
+      border-radius: 4px;
+      transition: width 0.5s;
+    }
+    .habit-card__actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .habit-card__btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .habit-card__btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .habit-card__btn--check {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+    .habit-card__btn--check:hover { background: var(--accent-lime); color: #05050A; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { border-color: var(--border-strong); color: var(--text); }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-lime);
+      box-shadow: 0 0 0 3px var(--accent-lime-glow);
+    }
+    .emoji-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .emoji-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .emoji-btn:hover { border-color: var(--border-strong); }
+    .emoji-btn.active { border-color: var(--accent-lime); background: var(--accent-lime-dim); }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16,16,26,0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 8px;
+      z-index: 200;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: var(--transition);
+      min-width: 72px;
+    }
+    .bottom-nav .nav-btn:hover { background: var(--bg-card); }
+    .bottom-nav .nav-btn.active { background: var(--bg-elevated); }
+    .bottom-nav .nav-icon { font-size: 1.2rem; }
+    .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.02em; }
+    .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .layout { padding: 24px 16px 120px; }
+      .bottom-nav { width: calc(100% - 32px); justify-content: space-around; }
+      .bottom-nav .nav-btn { min-width: unset; padding: 10px 14px; }
+      .bottom-nav .nav-label { display: none; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .habits-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-ambient">
+  <div class="bg-orb bg-orb--lime"></div>
+  <div class="bg-orb bg-orb--purple"></div>
+</div>
+
+<div class="layout">
+
+  <!-- Logo -->
+  <div class="logo-section">
+    <a href="index.html" class="logo-text">Otter<span>Habit</span></a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card stat-card--lime">
+      <div class="stat-card__value" id="statToday">0</div>
+      <div class="stat-card__label">今日打卡</div>
+    </div>
+    <div class="stat-card stat-card--purple">
+      <div class="stat-card__value" id="statTotal">0</div>
+      <div class="stat-card__label">总习惯数</div>
+    </div>
+    <div class="stat-card stat-card--blue">
+      <div class="stat-card__value" id="statStreak">0</div>
+      <div class="stat-card__label">最长连续</div>
+    </div>
+    <div class="stat-card stat-card--lime">
+      <div class="stat-card__value" id="statRate">0%</div>
+      <div class="stat-card__label">完成率</div>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="calendar-wrap">
+    <div class="calendar-header">
+      <div class="calendar-title">
+        <span>📅</span>
+        <span id="calendarMonth">2026年4月</span>
+      </div>
+      <div class="calendar-nav">
+        <button class="calendar-nav__btn" onclick="prevMonth()">‹</button>
+        <button class="calendar-nav__btn" onclick="nextMonth()">›</button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+
+  <!-- Habits -->
+  <div class="habits-header">
+    <div class="habits-title">
+      <span>🎯</span>
+      <span>我的习惯</span>
+    </div>
+    <button class="btn btn--primary" onclick="openAdd()">
+      <span>+</span> 新建习惯
+    </button>
+  </div>
+  <div class="habits-grid" id="habitsGrid"></div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-btn">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">主页</span>
+  </a>
+  <a href="app-todo.html" class="nav-btn">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Todo</span>
+  </a>
+  <a href="app-habits.html" class="nav-btn active">
+    <span class="nav-icon">🎯</span>
+    <span class="nav-label">Habit</span>
+  </a>
+  <a href="app-ledger.html" class="nav-btn">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Ledger</span>
+  </a>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新建习惯</div>
+      <button class="modal-close" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">习惯名称</label>
+      <input type="text" class="form-input" id="inputName" placeholder="例如：晨跑、阅读...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">图标</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAdd()">取消</button>
+      <button class="btn btn--primary" onclick="saveHabit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'otter-habits';
+const EMOJIS = ['🏃','📖','💪','🧘','💧','🛌','🎨','🎵','✍️','🌱','🍳','🧹'];
+let habits = [];
+let checkins = {};
+let viewDate = new Date();
+let selectedEmoji = EMOJIS[0];
+
+function load() {
+  const data = localStorage.getItem(STORE_KEY);
+  if (data) {
+    const parsed = JSON.parse(data);
+    habits = parsed.habits || [];
+    checkins = parsed.checkins || {};
+  }
+  render();
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({ habits, checkins }));
+}
+
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function isChecked(habitId, date) {
+  return (checkins[date] || []).includes(habitId);
+}
+
+function toggleCheck(habitId) {
+  const today = getToday();
+  if (!checkins[today]) checkins[today] = [];
+  const idx = checkins[today].indexOf(habitId);
+  if (idx >= 0) checkins[today].splice(idx, 1);
+  else checkins[today].push(habitId);
+  save();
+  render();
+}
+
+function getStreak(habitId) {
+  let streak = 0;
+  let d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const ds = new Date(d);
+    ds.setDate(ds.getDate() - i);
+    const dsStr = ds.toISOString().split('T')[0];
+    if (isChecked(habitId, dsStr)) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}
+
+function render() {
+  const today = getToday();
+  const todayCheckins = checkins[today] || [];
+
+  // Stats
+  document.getElementById('statToday').textContent = todayCheckins.length;
+  document.getElementById('statTotal').textContent = habits.length;
+  let maxStreak = 0;
+  habits.forEach(h => { const s = getStreak(h.id); if (s > maxStreak) maxStreak = s; });
+  document.getElementById('statStreak').textContent = maxStreak;
+  const rate = habits.length ? Math.round(todayCheckins.length / habits.length * 100) : 0;
+  document.getElementById('statRate').textContent = rate + '%';
+
+  // Calendar
+  renderCalendar();
+
+  // Habits grid
+  const grid = document.getElementById('habitsGrid');
+  if (habits.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-secondary)">
+        <div style="font-size:3rem;margin-bottom:16px;opacity:0.5">🎯</div>
+        <div>暂无习惯，点击上方按钮新建</div>
+      </div>
+    `;
+    return;
+  }
+  grid.innerHTML = habits.map(h => {
+    const checked = isChecked(h.id, today);
+    const streak = getStreak(h.id);
+    return `
+      <div class="habit-card ${checked ? 'checked' : ''}">
+        <div class="habit-card__header">
+          <div class="habit-card__icon">${h.emoji}</div>
+          <div>
+            <div class="habit-card__name">${escapeHtml(h.name)}</div>
+            <div class="habit-card__streak">🔥 连续 ${streak} 天</div>
+          </div>
+          <div class="habit-card__check">
+            <span class="habit-card__check-icon">✓</span>
+          </div>
+        </div>
+        <div class="habit-card__progress">
+          <div class="habit-card__bar" style="width:${Math.min(100, streak * 5)}%"></div>
+        </div>
+        <div class="habit-card__actions">
+          <button class="habit-card__btn habit-card__btn--check" onclick="toggleCheck('${h.id}')">
+            ${checked ? '取消打卡' : '打卡'}
+          </button>
+          <button class="habit-card__btn" onclick="deleteHabit('${h.id}')">删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  document.getElementById('calendarMonth').textContent = `${year}年${month + 1}月`;
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDayOfWeek = firstDay.getDay() || 7;
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+
+  let html = '';
+  ['一','二','三','四','五','六','日'].forEach(d => {
+    html += `<div class="calendar-day-label">${d}</div>`;
+  });
+
+  // Previous month days
+  for (let i = 1; i < startDayOfWeek; i++) {
+    const d = new Date(year, month, 1 - (startDayOfWeek - i));
+    html += `<div class="calendar-day other-month">${d.getDate()}</div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dayCheckins = checkins[dateStr] || [];
+    const isToday = dateStr === todayStr;
+    const classes = ['calendar-day'];
+    if (isToday) classes.push('today');
+    if (dayCheckins.length > 0) classes.push('checked');
+    html += `<div class="${classes.join(' ')}" data-date="${dateStr}">${d}</div>`;
+  }
+
+  // Next month days
+  const endDayOfWeek = lastDay.getDay() || 7;
+  for (let i = endDayOfWeek + 1; i <= 7; i++) {
+    const d = new Date(year, month + 1, i - endDayOfWeek);
+    html += `<div class="calendar-day other-month">${d.getDate()}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function prevMonth() {
+  viewDate.setMonth(viewDate.getMonth() - 1);
+  render();
+}
+
+function nextMonth() {
+  viewDate.setMonth(viewDate.getMonth() + 1);
+  render();
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openAdd() {
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('inputName').value = '';
+  selectedEmoji = EMOJIS[0];
+  renderEmojiPicker();
+  document.getElementById('inputName').focus();
+}
+
+function closeAdd() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function renderEmojiPicker() {
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn ${e === selectedEmoji ? 'active' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  renderEmojiPicker();
+}
+
+function saveHabit() {
+  const name = document.getElementById('inputName').value.trim();
+  if (!name) return;
+  habits.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    name,
+    emoji: selectedEmoji
+  });
+  save();
+  render();
+  closeAdd();
+}
+
+function deleteHabit(id) {
+  if (!confirm('确定删除该习惯？')) return;
+  habits = habits.filter(h => h.id !== id);
+  save();
+  render();
+}
+
+load();
+</script>
+</body>
+</html>

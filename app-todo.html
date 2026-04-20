@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterTodo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base: #05050A;
+      --bg-surface: #0C0C14;
+      --bg-card: #10101A;
+      --bg-card-hover: #14141F;
+      --bg-elevated: #18182A;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --border-accent: rgba(202,255,4,0.3);
+      --accent-lime: #CAFF04;
+      --accent-lime-dim: rgba(202,255,4,0.12);
+      --accent-lime-glow: rgba(202,255,4,0.06);
+      --accent-purple: #A78BFA;
+      --accent-purple-dim: rgba(167,139,250,0.12);
+      --accent-blue: #60A5FA;
+      --text: #F0F0F8;
+      --text-secondary: #9090B0;
+      --text-tertiary: #5050708;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Ambient background ── */
+    .bg-ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    .bg-orb--lime {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(202,255,4,0.12) 0%, transparent 70%);
+      top: -200px; right: -100px;
+      animation: float 12s ease-in-out infinite;
+    }
+    .bg-orb--purple {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      animation: float 16s ease-in-out infinite reverse;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── Layout ── */
+    .layout {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 120px;
+    }
+
+    /* ── Logo ── */
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo-text span { color: var(--accent-lime); }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card__value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 4px;
+    }
+    .stat-card--lime .stat-card__value { color: var(--accent-lime); }
+    .stat-card--purple .stat-card__value { color: var(--accent-purple); }
+    .stat-card--blue .stat-card__value { color: var(--accent-blue); }
+    .stat-card__label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ── Main card ── */
+    .main-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-lime);
+      box-shadow: 0 0 8px rgba(202,255,4,0.5);
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn--primary {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+    .btn--primary:hover { background: var(--accent-lime); color: #05050A; }
+
+    /* ── Sidebar + Tasks ── */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+    }
+    .sidebar-btn:hover { background: var(--bg-card-hover); color: var(--text); }
+    .sidebar-btn.active {
+      background: var(--bg-card);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .sidebar-btn__icon { font-size: 1rem; }
+    .sidebar-btn__count {
+      margin-left: auto;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 50px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+    }
+
+    /* ── Tasks ── */
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .task-item:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+    .task-item.completed { opacity: 0.5; }
+    .task-item.completed .task-item__title { text-decoration: line-through; }
+    .task-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border-strong);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .task-checkbox:hover { border-color: var(--accent-lime); }
+    .task-item.completed .task-checkbox {
+      background: var(--accent-lime);
+      border-color: var(--accent-lime);
+    }
+    .task-checkbox__icon { font-size: 0.8rem; color: #05050A; opacity: 0; }
+    .task-item.completed .task-checkbox__icon { opacity: 1; }
+    .task-item__body { flex: 1; min-width: 0; }
+    .task-item__title { font-size: 0.9rem; font-weight: 600; }
+    .task-item__meta {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .task-item__actions {
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: var(--transition);
+    }
+    .task-item:hover .task-item__actions { opacity: 1; }
+    .task-item__btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+    .task-item__btn:hover { border-color: var(--border-strong); color: var(--text); }
+
+    /* ── Empty ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state__text { font-size: 0.9rem; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { border-color: var(--border-strong); color: var(--text); }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-lime);
+      box-shadow: 0 0 0 3px var(--accent-lime-glow);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16,16,26,0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 8px;
+      z-index: 200;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: var(--transition);
+      min-width: 72px;
+    }
+    .bottom-nav .nav-btn:hover { background: var(--bg-card); }
+    .bottom-nav .nav-btn.active { background: var(--bg-elevated); }
+    .bottom-nav .nav-icon { font-size: 1.2rem; }
+    .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.02em; }
+    .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .app-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+    @media (max-width: 640px) {
+      .layout { padding: 24px 16px 120px; }
+      .stats-row { grid-template-columns: 1fr; }
+      .bottom-nav { width: calc(100% - 32px); justify-content: space-around; }
+      .bottom-nav .nav-btn { min-width: unset; padding: 10px 14px; }
+      .bottom-nav .nav-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-ambient">
+  <div class="bg-orb bg-orb--lime"></div>
+  <div class="bg-orb bg-orb--purple"></div>
+</div>
+
+<div class="layout">
+
+  <!-- Logo -->
+  <div class="logo-section">
+    <a href="index.html" class="logo-text">Otter<span>Todo</span></a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card stat-card--lime">
+      <div class="stat-card__value" id="statTotal">0</div>
+      <div class="stat-card__label">全部任务</div>
+    </div>
+    <div class="stat-card stat-card--purple">
+      <div class="stat-card__value" id="statActive">0</div>
+      <div class="stat-card__label">进行中</div>
+    </div>
+    <div class="stat-card stat-card--blue">
+      <div class="stat-card__value" id="statDone">0</div>
+      <div class="stat-card__label">已完成</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title__dot"></div>
+        <span>我的任务</span>
+      </div>
+      <button class="btn btn--primary" onclick="openAdd()">
+        <span>+</span> 新建任务
+      </button>
+    </div>
+
+    <div class="app-grid">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar"></div>
+
+      <!-- Tasks -->
+      <div class="task-list" id="taskList"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-btn">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">主页</span>
+  </a>
+  <a href="app-todo.html" class="nav-btn active">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Todo</span>
+  </a>
+  <a href="app-habits.html" class="nav-btn">
+    <span class="nav-icon">🎯</span>
+    <span class="nav-label">Habit</span>
+  </a>
+  <a href="app-ledger.html" class="nav-btn">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Ledger</span>
+  </a>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新建任务</div>
+      <button class="modal-close" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">任务内容</label>
+      <input type="text" class="form-input" id="inputTitle" placeholder="输入任务...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类</label>
+      <input type="text" class="form-input" id="inputCategory" placeholder="例如：工作、生活...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAdd()">取消</button>
+      <button class="btn btn--primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'otter-todo';
+let tasks = [];
+let filter = 'all';
+
+function load() {
+  const data = localStorage.getItem(STORE_KEY);
+  tasks = data ? JSON.parse(data).tasks || [] : [];
+  render();
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({ tasks }));
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function render() {
+  const all = tasks.length;
+  const active = tasks.filter(t => !t.completed).length;
+  const done = all - active;
+  document.getElementById('statTotal').textContent = all;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statDone').textContent = done;
+
+  // Sidebar
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = `
+    <button class="sidebar-btn ${filter === 'all' ? 'active' : ''}" onclick="setFilter('all')">
+      <span class="sidebar-btn__icon">📋</span>
+      <span>全部</span>
+      <span class="sidebar-btn__count">${all}</span>
+    </button>
+    <button class="sidebar-btn ${filter === 'active' ? 'active' : ''}" onclick="setFilter('active')">
+      <span class="sidebar-btn__icon">⏳</span>
+      <span>进行中</span>
+      <span class="sidebar-btn__count">${active}</span>
+    </button>
+    <button class="sidebar-btn ${filter === 'done' ? 'active' : ''}" onclick="setFilter('done')">
+      <span class="sidebar-btn__icon">✓</span>
+      <span>已完成</span>
+      <span class="sidebar-btn__count">${done}</span>
+    </button>
+  `;
+
+  // Filter tasks
+  let filtered = tasks;
+  if (filter === 'active') filtered = tasks.filter(t => !t.completed);
+  if (filter === 'done') filtered = tasks.filter(t => t.completed);
+
+  const list = document.getElementById('taskList');
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">📋</div>
+        <div class="empty-state__text">${filter === 'all' ? '暂无任务，点击上方按钮新建' : '暂无内容'}</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => `
+    <div class="task-item ${t.completed ? 'completed' : ''}">
+      <div class="task-checkbox" onclick="toggle('${t.id}')">
+        <span class="task-checkbox__icon">✓</span>
+      </div>
+      <div class="task-item__body">
+        <div class="task-item__title">${escapeHtml(t.title)}</div>
+        <div class="task-item__meta">${t.category || '未分类'} · ${t.date}</div>
+      </div>
+      <div class="task-item__actions">
+        <button class="task-item__btn" onclick="del('${t.id}')" title="删除">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setFilter(f) {
+  filter = f;
+  render();
+}
+
+function toggle(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) t.completed = !t.completed;
+  save();
+  render();
+}
+
+function del(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save();
+  render();
+}
+
+function openAdd() {
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('inputTitle').value = '';
+  document.getElementById('inputCategory').value = '';
+  document.getElementById('inputTitle').focus();
+}
+
+function closeAdd() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function saveTask() {
+  const title = document.getElementById('inputTitle').value.trim();
+  if (!title) return;
+  tasks.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    title,
+    category: document.getElementById('inputCategory').value.trim(),
+    completed: false,
+    date: new Date().toISOString().split('T')[0]
+  });
+  save();
+  render();
+  closeAdd();
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OtterLedger</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-base: #05050A;
+      --bg-surface: #0C0C14;
+      --bg-card: #10101A;
+      --bg-card-hover: #14141F;
+      --bg-elevated: #18182A;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --border-accent: rgba(202,255,4,0.3);
+      --accent-lime: #CAFF04;
+      --accent-lime-dim: rgba(202,255,4,0.12);
+      --accent-lime-glow: rgba(202,255,4,0.06);
+      --accent-purple: #A78BFA;
+      --accent-purple-dim: rgba(167,139,250,0.12);
+      --accent-blue: #60A5FA;
+      --text: #F0F0F8;
+      --text-secondary: #9090B0;
+      --text-tertiary: #5050708;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Ambient background ── */
+    .bg-ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    .bg-orb--lime {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(202,255,4,0.12) 0%, transparent 70%);
+      top: -200px; right: -100px;
+      animation: float 12s ease-in-out infinite;
+    }
+    .bg-orb--purple {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      animation: float 16s ease-in-out infinite reverse;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── Layout ── */
+    .layout {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 32px 120px;
+    }
+
+    /* ── Logo ── */
+    .logo-section {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo-text span { color: var(--accent-lime); }
+
+    /* ── Balance cards ── */
+    .balance-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .balance-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+    .balance-card__icon {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+    }
+    .balance-card__value {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+    .balance-card--lime .balance-card__value { color: var(--accent-lime); }
+    .balance-card--purple .balance-card__value { color: var(--accent-purple); }
+    .balance-card--blue .balance-card__value { color: var(--accent-blue); }
+    .balance-card__label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ── Main card ── */
+    .main-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-lime);
+      box-shadow: 0 0 8px rgba(202,255,4,0.5);
+    }
+    .card-actions { display: flex; gap: 8px; align-items: center; }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn--primary {
+      background: var(--accent-lime-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-lime);
+    }
+    .btn--primary:hover { background: var(--accent-lime); color: #05050A; }
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .month-nav__btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .month-nav__btn:hover { border-color: var(--border-strong); color: var(--text); }
+    .month-nav__label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* ── Record list ── */
+    .record-list { display: flex; flex-direction: column; gap: 8px; }
+    .record-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    .record-item:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+    .record-item__icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .record-item--expense .record-item__icon { background: rgba(248,113,113,0.12); }
+    .record-item--income .record-item__icon { background: var(--accent-lime-dim); }
+    .record-item__body { flex: 1; min-width: 0; }
+    .record-item__category {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .record-item__note {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .record-item__amount {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .record-item--expense .record-item__amount { color: #F87171; }
+    .record-item--income .record-item__amount { color: var(--accent-lime); }
+    .record-item__date {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .record-item__delete {
+      opacity: 0;
+      padding: 6px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .record-item:hover .record-item__delete { opacity: 1; }
+    .record-item__delete:hover { background: rgba(248,113,113,0.15); color: #F87171; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state__icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state__text { font-size: 0.9rem; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { border-color: var(--border-strong); color: var(--text); }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-lime);
+      box-shadow: 0 0 0 3px var(--accent-lime-glow);
+    }
+    .form-select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent-lime);
+    }
+    .type-toggle {
+      display: flex;
+      gap: 8px;
+    }
+    .type-toggle__btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .type-toggle__btn:hover { border-color: var(--border-strong); }
+    .type-toggle__btn.active--expense { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.3); color: #F87171; }
+    .type-toggle__btn.active--income { background: var(--accent-lime-dim); border-color: var(--border-accent); color: var(--accent-lime); }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .modal-actions .btn { flex: 1; justify-content: center; }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16,16,26,0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: 8px;
+      z-index: 200;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: var(--transition);
+      min-width: 72px;
+    }
+    .bottom-nav .nav-btn:hover { background: var(--bg-card); }
+    .bottom-nav .nav-btn.active { background: var(--bg-elevated); }
+    .bottom-nav .nav-icon { font-size: 1.2rem; }
+    .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.02em; }
+    .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .balance-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .layout { padding: 24px 16px 120px; }
+      .bottom-nav { width: calc(100% - 32px); justify-content: space-around; }
+      .bottom-nav .nav-btn { min-width: unset; padding: 10px 14px; }
+      .bottom-nav .nav-label { display: none; }
+      .main-card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-ambient">
+  <div class="bg-orb bg-orb--lime"></div>
+  <div class="bg-orb bg-orb--purple"></div>
+</div>
+
+<div class="layout">
+
+  <!-- Logo -->
+  <div class="logo-section">
+    <a href="index.html" class="logo-text">Otter<span>Ledger</span></a>
+  </div>
+
+  <!-- Balance cards -->
+  <div class="balance-row">
+    <div class="balance-card balance-card--lime">
+      <div class="balance-card__icon">💰</div>
+      <div class="balance-card__value" id="balanceValue">¥0</div>
+      <div class="balance-card__label">账户余额</div>
+    </div>
+    <div class="balance-card balance-card--purple">
+      <div class="balance-card__icon">📈</div>
+      <div class="balance-card__value" id="incomeValue">¥0</div>
+      <div class="balance-card__label">本月收入</div>
+    </div>
+    <div class="balance-card balance-card--blue">
+      <div class="balance-card__icon">📉</div>
+      <div class="balance-card__value" id="expenseValue">¥0</div>
+      <div class="balance-card__label">本月支出</div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="main-card">
+    <div class="card-header">
+      <div class="card-title">
+        <div class="card-title__dot"></div>
+        <span>收支记录</span>
+      </div>
+      <div class="card-actions">
+        <div class="month-nav">
+          <button class="month-nav__btn" onclick="prevMonth()">‹</button>
+          <span class="month-nav__label" id="monthLabel">2026年4月</span>
+          <button class="month-nav__btn" onclick="nextMonth()">›</button>
+        </div>
+        <button class="btn btn--primary" onclick="openAdd()">
+          <span>+</span> 新建
+        </button>
+      </div>
+    </div>
+    <div class="record-list" id="recordList"></div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-btn">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">主页</span>
+  </a>
+  <a href="app-todo.html" class="nav-btn">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Todo</span>
+  </a>
+  <a href="app-habits.html" class="nav-btn">
+    <span class="nav-icon">🎯</span>
+    <span class="nav-label">Habit</span>
+  </a>
+  <a href="app-ledger.html" class="nav-btn active">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Ledger</span>
+  </a>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新建记录</div>
+      <button class="modal-close" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">类型</label>
+      <div class="type-toggle">
+        <button class="type-toggle__btn active--expense" id="typeExpense" onclick="setType('expense')">💸 支出</button>
+        <button class="type-toggle__btn" id="typeIncome" onclick="setType('income')">💵 收入</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">金额</label>
+      <input type="number" class="form-input" id="inputAmount" placeholder="0.00" step="0.01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">分类</label>
+      <select class="form-select" id="inputCategory"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <input type="text" class="form-input" id="inputNote" placeholder="可选备注...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAdd()">取消</button>
+      <button class="btn btn--primary" onclick="saveRecord()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'otter-ledger';
+const EXPENSE_CATS = ['🍜 餐饮','🛒 购物','🚗 交通','🏠 住房','💊 医疗','🎮 娱乐','📚 教育','💄 美妆','☕ 咖啡','✈️ 旅行','🎁 礼物','📦 其他'];
+const INCOME_CATS = ['💰 工资','💼 奖金','📈 投资','🎁 红包','💵 兼职','📦 其他'];
+
+let records = [];
+let viewDate = new Date();
+let recordType = 'expense';
+
+function load() {
+  const data = localStorage.getItem(STORE_KEY);
+  records = data ? JSON.parse(data).records : [];
+  render();
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify({ records }));
+}
+
+function formatMoney(n) {
+  return '¥' + n.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function render() {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  document.getElementById('monthLabel').textContent = `${year}年${month + 1}月`;
+
+  // Filter records for this month
+  const monthRecords = records.filter(r => {
+    const d = new Date(r.date);
+    return d.getFullYear() === year && d.getMonth() === month;
+  });
+
+  // Calculate totals
+  let income = 0, expense = 0;
+  monthRecords.forEach(r => {
+    if (r.type === 'income') income += r.amount;
+    else expense += r.amount;
+  });
+  const balance = records.reduce((sum, r) => sum + (r.type === 'income' ? r.amount : -r.amount), 0);
+
+  document.getElementById('balanceValue').textContent = formatMoney(balance);
+  document.getElementById('incomeValue').textContent = formatMoney(income);
+  document.getElementById('expenseValue').textContent = formatMoney(expense);
+
+  // Render list
+  const list = document.getElementById('recordList');
+  if (monthRecords.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state__icon">💰</div>
+        <div class="empty-state__text">本月暂无记录</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Sort by date desc
+  monthRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  list.innerHTML = monthRecords.map(r => `
+    <div class="record-item record-item--${r.type}">
+      <div class="record-item__icon">${r.category.split(' ')[0]}</div>
+      <div class="record-item__body">
+        <div class="record-item__category">${r.category.split(' ').slice(1).join(' ')}</div>
+        <div class="record-item__note">${r.note || '—'}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="record-item__amount">${r.type === 'income' ? '+' : '-'}${formatMoney(r.amount)}</div>
+        <div class="record-item__date">${r.date}</div>
+      </div>
+      <button class="record-item__delete" onclick="del('${r.id}')">🗑</button>
+    </div>
+  `).join('');
+}
+
+function prevMonth() {
+  viewDate.setMonth(viewDate.getMonth() - 1);
+  render();
+}
+
+function nextMonth() {
+  viewDate.setMonth(viewDate.getMonth() + 1);
+  render();
+}
+
+function openAdd() {
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('inputAmount').value = '';
+  document.getElementById('inputNote').value = '';
+  recordType = 'expense';
+  updateTypeUI();
+  updateCategoryOptions();
+  document.getElementById('inputAmount').focus();
+}
+
+function closeAdd() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function setType(t) {
+  recordType = t;
+  updateTypeUI();
+  updateCategoryOptions();
+}
+
+function updateTypeUI() {
+  document.getElementById('typeExpense').className = 'type-toggle__btn' + (recordType === 'expense' ? ' active--expense' : '');
+  document.getElementById('typeIncome').className = 'type-toggle__btn' + (recordType === 'income' ? ' active--income' : '');
+}
+
+function updateCategoryOptions() {
+  const cats = recordType === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+  document.getElementById('inputCategory').innerHTML = cats.map(c =>
+    `<option value="${c}">${c}</option>`
+  ).join('');
+}
+
+function saveRecord() {
+  const amount = parseFloat(document.getElementById('inputAmount').value);
+  if (!amount || amount <= 0) return alert('请输入有效金额');
+  const category = document.getElementById('inputCategory').value;
+  const note = document.getElementById('inputNote').value.trim();
+  records.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    type: recordType,
+    amount,
+    category,
+    note,
+    date: new Date().toISOString().split('T')[0]
+  });
+  save();
+  render();
+  closeAdd();
+}
+
+function del(id) {
+  records = records.filter(r => r.id !== id);
+  save();
+  render();
+}
+
+load();
+</script>
+</body>
+</html>

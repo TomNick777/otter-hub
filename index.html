@@ -507,6 +507,28 @@
     .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); }
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
+    /* ── User Avatar Button ── */
+    .user-avatar-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: transform var(--duration-fast), border-color var(--duration-fast);
+      flex-shrink: 0;
+      padding: 0;
+      margin-left: 4px;
+    }
+    .user-avatar-btn:hover {
+      transform: scale(1.08);
+      border-color: var(--accent-lime, #CAFF04);
+    }
+    .user-avatar-icon { font-size: 1.1rem; line-height: 1; pointer-events: none; }
+
     /* Modal */
     .modal-overlay {
       position: fixed;
@@ -645,7 +667,7 @@
 
   <!-- Logo & Time -->
   <div class="logo-section">
-    <div class="logo-text" id="logoText" oncontextmenu="openSettings(event)">Otter<span>Hub</span></div>
+    <div class="logo-text" id="logoText">Otter<span>Hub</span></div>
     <div class="time-display">
       <div class="time-main" id="timeMain">--:--:--</div>
       <div class="time-date" id="timeDate">加载中...</div>
@@ -823,7 +845,11 @@
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
   </a>
-</div>
+  <!-- User Avatar / Settings -->
+  <button class="user-avatar-btn" onclick="openSettings()" title="设置">
+    <span class="user-avatar-icon">🦦</span>
+  </button>
+</div><!-- /bottom-nav -->
 
 <!-- Context Menu -->
 <div class="context-menu" id="contextMenu">

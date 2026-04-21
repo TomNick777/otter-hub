@@ -1211,8 +1211,8 @@ function saveSettings() {
     if (settings.gistId) localStorage.setItem(STORAGE_KEYS.GIST_ID, settings.gistId);
   }
   // Trigger core re-init with new credentials
-  if (typeof core !== 'undefined' && settings.githubToken) {
-    core.login(settings.githubToken).then(() => {
+  if (typeof OtterHub !== 'undefined' && settings.githubToken) {
+    OtterHub.login(settings.githubToken).then(() => {
       document.getElementById('settingsStatus').innerHTML = '<span style="color:var(--accent-lime)">✓ 已保存，正在连接GitHub...</span>';
     }).catch(() => {
       document.getElementById('settingsStatus').innerHTML = '<span style="color:#F87171">✓ 设置已保存，但GitHub连接失败</span>';
@@ -1430,8 +1430,8 @@ loadKPIs();
           ring.className = 'user-avatar-ring ' + (cls || '');
         }
       }
-      if (typeof core !== 'undefined') {
-        core.addSyncListener(function(status) {
+      if (typeof OtterHub !== 'undefined') {
+        OtterHub.addSyncListener(function(status) {
           if (status === 'syncing') updateRing('syncing');
           else if (status === 'synced') updateRing('synced');
           else if (status === 'error') updateRing('error');
@@ -1440,5 +1440,16 @@ loadKPIs();
       }
     })();
     </script>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof OtterHub !== 'undefined') {
+    OtterHub.init().then(function(ok) {
+      if (ok) console.log('[index] synced!');
+    }).catch(function(e) { console.warn('[index] init error', e); });
+  }
+});
+</script>
+
 </body>
 </html>

@@ -810,8 +810,8 @@ load();
           ring.className = 'user-avatar-ring ' + (cls || '');
         }
       }
-      if (typeof core !== 'undefined') {
-        core.addSyncListener(function(status) {
+      if (typeof OtterHub !== 'undefined') {
+        OtterHub.addSyncListener(function(status) {
           if (status === 'syncing') updateRing('syncing');
           else if (status === 'synced') updateRing('synced');
           else if (status === 'error') updateRing('error');
@@ -821,6 +821,15 @@ load();
     })();
     </script>
 
+
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof OtterHub !== 'undefined') {
+    OtterHub.init().catch(function(e) { console.warn('[app] init error', e); });
+  }
+});
+</script>
 
 </body>
 </html>

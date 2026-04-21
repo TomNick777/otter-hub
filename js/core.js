@@ -531,7 +531,7 @@ function removeToast(toast) {
 
 // ── 导出 ─────────────────────────────────────────────────
 
-window.OtterHub = {
+window.core = {
   init, login, logout, syncNow, addSyncListener,
   isOnline,
   getData, setData,
@@ -550,3 +550,6 @@ window.OtterHub = {
   // UI
   showToast
 };
+
+// Alias for backward compatibility
+window.OtterHub = window.core;

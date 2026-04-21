@@ -868,7 +868,7 @@
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
   </a>
-  <a href="#" class="nav-btn" onclick="openSettings(); return false;">
+  <a href="#" class="nav-btn" onclick="openSettings(event); return false;">
     <span class="nav-icon">⚙️</span>
     <span class="nav-label">设置</span>
   </a>
@@ -1158,8 +1158,7 @@ function saveSettingsToStorage() {
 }
 
 function openSettings(e) {
-  e.preventDefault();
-  e.stopPropagation();
+  if (e) { e.preventDefault(); e.stopPropagation(); }
   loadSettings();
   document.getElementById('settingsModal').classList.add('open');
 }

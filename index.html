@@ -507,12 +507,7 @@
     .bottom-nav .nav-label { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); }
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
-    /* ── Home Button Long-Press ── */
-    #homeBtn.pressing { background: var(--accent-lime-dim) !important; transform: scale(0.94); }
-    #homeBtn.pressing .nav-icon,
-    #homeBtn.pressing .nav-label { color: var(--accent-lime) !important; }
-
-    /* ── User Avatar (inside bottom-nav, same row) ── */
+    /* ── User Avatar ── */
     .user-avatar-wrap {
       display: flex;
       align-items: center;
@@ -857,7 +852,7 @@
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-btn active" id="homeBtn">
+  <a href="index.html" class="nav-btn active">
     <span class="nav-icon">🏠</span>
     <span class="nav-label">主页</span>
   </a>
@@ -872,6 +867,10 @@
   <a href="app-ledger.html" class="nav-btn">
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
+  </a>
+  <a href="#" class="nav-btn" onclick="openSettings(); return false;">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">设置</span>
   </a>
 </div>
 
@@ -1169,65 +1168,6 @@ function closeSettings() {
   document.getElementById('settingsModal').classList.remove('open');
 }
 
-/* ── Long-Press on Home Button ── */
-(function() {
-  const btn = document.getElementById('homeBtn');
-  if (!btn) return;
-  let timer = null, longPressFired = false;
-
-  // PC: right-click → settings
-  btn.addEventListener('contextmenu', function(e) { e.preventDefault(); openSettings(e); });
-
-  // Mobile: touchstart → begin hold (600ms)
-  btn.addEventListener('touchstart', function(e) {
-    btn.classList.add('pressing');
-    longPressFired = false;
-    e.preventDefault(); // prevent ghost click
-    timer = setTimeout(function() {
-      longPressFired = true;
-      openSettings(e);
-      btn.classList.remove('pressing');
-    }, 600);
-  }, { passive: false });
-
-  // Mobile: touchend → if < 600ms (short tap) → navigate; if long-press fired → cancel
-  btn.addEventListener('touchend', function(e) {
-    clearTimeout(timer);
-    if (!longPressFired) {
-      btn.classList.remove('pressing');
-      // allow natural navigation (link href)
-    } else {
-      // long-press fired → settings opened, no navigation needed
-      btn.classList.remove('pressing');
-    }
-  });
-
-  btn.addEventListener('touchcancel', function() {
-    clearTimeout(timer);
-    btn.classList.remove('pressing');
-  });
-
-  // PC: mousedown → begin hold (600ms)
-  btn.addEventListener('mousedown', function(e) {
-    if (e.button !== 0) return; // left click only
-    btn.classList.add('pressing');
-    longPressFired = false;
-    timer = setTimeout(function() {
-      longPressFired = true;
-      openSettings(e);
-      btn.classList.remove('pressing');
-    }, 600);
-  });
-
-  btn.addEventListener('mouseup', function() {
-    clearTimeout(timer);
-    if (!longPressFired) btn.classList.remove('pressing');
-  });
-  btn.addEventListener('mouseleave', function() {
-    clearTimeout(timer);
-    btn.classList.remove('pressing');
-  });
-})();
 
 function setTheme(theme) {
   settings.theme = theme;

@@ -510,7 +510,7 @@
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-btn" id="homeBtn">
+  <a href="index.html" class="nav-btn">
     <span class="nav-icon">🏠</span>
     <span class="nav-label">主页</span>
   </a>
@@ -529,7 +529,12 @@
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title">新建记录</div>
+      <div class="modal-title">新建记录
+  <a href="#" class="nav-btn" onclick="openSettings(); return false;">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">设置</span>
+  </a>
+</div>
       <button class="modal-close" onclick="closeAdd()">✕</button>
     </div>
     <div class="form-group">

@@ -480,7 +480,7 @@
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-btn" id="homeBtn">
+  <a href="index.html" class="nav-btn">
     <span class="nav-icon">🏠</span>
     <span class="nav-label">主页</span>
   </a>
@@ -495,6 +495,10 @@
   <a href="app-ledger.html" class="nav-btn">
     <span class="nav-icon">💰</span>
     <span class="nav-label">Ledger</span>
+  </a>
+  <a href="#" class="nav-btn" onclick="openSettings(); return false;">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">设置</span>
   </a>
 </div>
 
@@ -541,9 +545,6 @@
 .theme-btn:hover { border-color: var(--border-strong); color: var(--text); }
 .theme-btn.active--dark { background: rgba(255,255,255,0.08); border-color: var(--border-strong); color: var(--text); }
 .theme-btn.active--light { background: var(--accent-lime-dim); border-color: var(--border-accent); color: var(--accent-lime); }
-#homeBtn.pressing { background: var(--accent-lime-dim) !important; transform: scale(0.94); }
-#homeBtn.pressing .nav-icon,
-#homeBtn.pressing .nav-label { color: var(--accent-lime) !important; }
 </style>
 
 <script>
@@ -620,53 +621,6 @@ async function testGithubConnection() {
   } catch(e) { s.innerHTML='<span style="color:#F87171">✗ 网络错误</span>'; }
 }
 
-/* ── Long-Press on Home Button ── */
-(function() {
-  var btn = document.getElementById('homeBtn');
-  if (!btn) return;
-  var timer = null, longPressFired = false;
-
-  btn.addEventListener('contextmenu', function(e) { e.preventDefault(); openSettings(e); });
-
-  btn.addEventListener('touchstart', function(e) {
-    btn.classList.add('pressing');
-    longPressFired = false;
-    e.preventDefault();
-    timer = setTimeout(function() {
-      longPressFired = true;
-      openSettings(e);
-      btn.classList.remove('pressing');
-    }, 600);
-  }, { passive: false });
-
-  btn.addEventListener('touchend', function() {
-    clearTimeout(timer);
-    btn.classList.remove('pressing');
-  });
-  btn.addEventListener('touchcancel', function() {
-    clearTimeout(timer);
-    btn.classList.remove('pressing');
-  });
-
-  btn.addEventListener('mousedown', function(e) {
-    if (e.button !== 0) return;
-    btn.classList.add('pressing');
-    longPressFired = false;
-    timer = setTimeout(function() {
-      longPressFired = true;
-      openSettings(e);
-      btn.classList.remove('pressing');
-    }, 600);
-  });
-  btn.addEventListener('mouseup', function() {
-    clearTimeout(timer);
-    if (!longPressFired) btn.classList.remove('pressing');
-  });
-  btn.addEventListener('mouseleave', function() {
-    clearTimeout(timer);
-    btn.classList.remove('pressing');
-  });
-})();
 
 loadSettings();
 </script>

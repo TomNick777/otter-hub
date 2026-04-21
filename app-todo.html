@@ -409,48 +409,6 @@
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
 
-    /* ── User Avatar (inside bottom-nav, same row) ── */
-    .user-avatar-wrap {
-      display: flex;
-      align-items: center;
-      margin-left: 6px;
-      flex-shrink: 0;
-    }
-    .user-avatar-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: rgba(16,16,26,0.92);
-      backdrop-filter: blur(24px);
-      border: 1px solid var(--border-strong);
-      cursor: pointer;
-      transition: transform var(--duration-fast);
-      padding: 0;
-      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
-    }
-    .user-avatar-btn:hover { transform: scale(1.06); }
-    .user-avatar-icon {
-      font-size: 1.5rem;
-      line-height: 1;
-      pointer-events: none;
-      position: relative;
-      z-index: 1;
-    }
-    .user-avatar-ring {
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      transition: border-color 0.3s ease;
-      pointer-events: none;
-    }
-    .user-avatar-ring.syncing { border-color: #ef4444; }
-    .user-avatar-ring.synced  { border-color: #22c55e; }
-    .user-avatar-ring.error   { border-color: #f97316; }
 
         /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -522,7 +480,7 @@
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-btn" oncontextmenu="return false" ontouchstart="openSettings()" onmousedown="if(event.button===2)openSettings()">
+  <a href="index.html" class="nav-btn" id="homeBtn">
     <span class="nav-icon">🏠</span>
     <span class="nav-label">主页</span>
   </a>
@@ -539,6 +497,180 @@
     <span class="nav-label">Ledger</span>
   </a>
 </div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 设置</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">🎨 主题风格</label>
+      <div class="theme-toggle">
+        <button class="theme-btn active--dark" id="themeDark" onclick="setTheme('dark')">🌙 深色</button>
+        <button class="theme-btn" id="themeLight" onclick="setTheme('light')">☀️ 浅色</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">🔑 GitHub Token（用于 Gist 同步）</label>
+      <input type="password" class="form-input" id="inputGithubToken" placeholder="ghp_xxxx...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📝 Gist ID（可选）</label>
+      <input type="text" class="form-input" id="inputGistId" placeholder="留空则自动创建新 Gist">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="testGithubConnection()">测试连接</button>
+      <button class="btn btn--primary" onclick="saveSettings()">保存设置</button>
+    </div>
+    <div id="settingsStatus" style="font-size:0.75rem;color:var(--text-secondary);margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<style>
+.theme-toggle { display: flex; gap: 8px; }
+.theme-btn {
+  flex: 1; padding: 14px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-surface);
+  color: var(--text-secondary); font-family: var(--font);
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  transition: var(--transition); display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+}
+.theme-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.theme-btn.active--dark { background: rgba(255,255,255,0.08); border-color: var(--border-strong); color: var(--text); }
+.theme-btn.active--light { background: var(--accent-lime-dim); border-color: var(--border-accent); color: var(--accent-lime); }
+#homeBtn.pressing { background: var(--accent-lime-dim) !important; transform: scale(0.94); }
+#homeBtn.pressing .nav-icon,
+#homeBtn.pressing .nav-label { color: var(--accent-lime) !important; }
+</style>
+
+<script>
+var SETTINGS_KEY = 'otter-settings';
+var settings = { theme: 'dark', githubToken: '', gistId: '' };
+
+function loadSettings() {
+  var data = localStorage.getItem(SETTINGS_KEY);
+  if (data) settings = Object.assign(settings, JSON.parse(data));
+  document.getElementById('inputGithubToken').value = settings.githubToken || '';
+  document.getElementById('inputGistId').value = settings.gistId || '';
+  applyTheme(settings.theme);
+  document.getElementById('themeDark').className = 'theme-btn' + (settings.theme==='dark'?' active--dark':'');
+  document.getElementById('themeLight').className = 'theme-btn' + (settings.theme==='light'?' active--light':'');
+}
+function applyTheme(theme) {
+  if (theme==='light') {
+    document.documentElement.style.setProperty('--bg-base','#F5F5FA');
+    document.documentElement.style.setProperty('--bg-surface','#FFFFFF');
+    document.documentElement.style.setProperty('--bg-card','#FFFFFF');
+    document.documentElement.style.setProperty('--bg-elevated','#FFFFFF');
+    document.documentElement.style.setProperty('--border','rgba(0,0,0,0.08)');
+    document.documentElement.style.setProperty('--border-strong','rgba(0,0,0,0.15)');
+    document.documentElement.style.setProperty('--text','#1A1A2E');
+    document.documentElement.style.setProperty('--text-secondary','#6B6B8A');
+  } else {
+    document.documentElement.style.setProperty('--bg-base','#05050A');
+    document.documentElement.style.setProperty('--bg-surface','#0C0C14');
+    document.documentElement.style.setProperty('--bg-card','#10101A');
+    document.documentElement.style.setProperty('--bg-elevated','#18182A');
+    document.documentElement.style.setProperty('--border','rgba(255,255,255,0.06)');
+    document.documentElement.style.setProperty('--border-strong','rgba(255,255,255,0.12)');
+    document.documentElement.style.setProperty('--text','#F0F0F8');
+    document.documentElement.style.setProperty('--text-secondary','#9090B0');
+  }
+}
+function openSettings(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  loadSettings();
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+function setTheme(theme) {
+  settings.theme = theme;
+  applyTheme(theme);
+  document.getElementById('themeDark').className = 'theme-btn' + (theme==='dark'?' active--dark':'');
+  document.getElementById('themeLight').className = 'theme-btn' + (theme==='light'?' active--light':'');
+  saveSettingsToStorage();
+}
+function saveSettingsToStorage() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+function saveSettings() {
+  settings.githubToken = document.getElementById('inputGithubToken').value.trim();
+  settings.gistId = document.getElementById('inputGistId').value.trim();
+  saveSettingsToStorage();
+  var s = document.getElementById('settingsStatus');
+  s.innerHTML = '<span style="color:var(--accent-lime)">✓ 设置已保存</span>';
+  setTimeout(function(){ s.innerHTML=''; }, 2000);
+}
+async function testGithubConnection() {
+  var token = document.getElementById('inputGithubToken').value.trim();
+  var s = document.getElementById('settingsStatus');
+  if (!token) { s.innerHTML='<span style="color:#F87171">请先输入 GitHub Token</span>'; return; }
+  s.innerHTML='正在测试连接...';
+  try {
+    var res = await fetch('https://api.github.com/user', { headers:{'Authorization':'token '+token} });
+    if (res.ok) {
+      var user = await res.json();
+      s.innerHTML='<span style="color:var(--accent-lime)">✓ 连接成功，用户: '+user.login+'</span>';
+    } else {
+      s.innerHTML='<span style="color:#F87171">✗ Token 无效或已过期</span>';
+    }
+  } catch(e) { s.innerHTML='<span style="color:#F87171">✗ 网络错误</span>'; }
+}
+
+/* ── Long-Press on Home Button ── */
+(function() {
+  var btn = document.getElementById('homeBtn');
+  if (!btn) return;
+  var timer = null, longPressFired = false;
+
+  btn.addEventListener('contextmenu', function(e) { e.preventDefault(); openSettings(e); });
+
+  btn.addEventListener('touchstart', function(e) {
+    btn.classList.add('pressing');
+    longPressFired = false;
+    e.preventDefault();
+    timer = setTimeout(function() {
+      longPressFired = true;
+      openSettings(e);
+      btn.classList.remove('pressing');
+    }, 600);
+  }, { passive: false });
+
+  btn.addEventListener('touchend', function() {
+    clearTimeout(timer);
+    btn.classList.remove('pressing');
+  });
+  btn.addEventListener('touchcancel', function() {
+    clearTimeout(timer);
+    btn.classList.remove('pressing');
+  });
+
+  btn.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    btn.classList.add('pressing');
+    longPressFired = false;
+    timer = setTimeout(function() {
+      longPressFired = true;
+      openSettings(e);
+      btn.classList.remove('pressing');
+    }, 600);
+  });
+  btn.addEventListener('mouseup', function() {
+    clearTimeout(timer);
+    if (!longPressFired) btn.classList.remove('pressing');
+  });
+  btn.addEventListener('mouseleave', function() {
+    clearTimeout(timer);
+    btn.classList.remove('pressing');
+  });
+})();
+
+loadSettings();
+</script>
+
 
 <!-- Add Modal -->
 <div class="modal-overlay" id="addModal">

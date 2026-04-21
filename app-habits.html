@@ -469,48 +469,6 @@
     .bottom-nav .nav-btn.active .nav-label { color: var(--accent-lime); }
 
 
-    /* ── User Avatar (inside bottom-nav, same row) ── */
-    .user-avatar-wrap {
-      display: flex;
-      align-items: center;
-      margin-left: 6px;
-      flex-shrink: 0;
-    }
-    .user-avatar-btn {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: rgba(16,16,26,0.92);
-      backdrop-filter: blur(24px);
-      border: 1px solid var(--border-strong);
-      cursor: pointer;
-      transition: transform var(--duration-fast);
-      padding: 0;
-      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.04);
-    }
-    .user-avatar-btn:hover { transform: scale(1.06); }
-    .user-avatar-icon {
-      font-size: 1.5rem;
-      line-height: 1;
-      pointer-events: none;
-      position: relative;
-      z-index: 1;
-    }
-    .user-avatar-ring {
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 3px solid transparent;
-      transition: border-color 0.3s ease;
-      pointer-events: none;
-    }
-    .user-avatar-ring.syncing { border-color: #ef4444; }
-    .user-avatar-ring.synced  { border-color: #22c55e; }
-    .user-avatar-ring.error   { border-color: #f97316; }
 
         /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -592,7 +550,7 @@
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-btn" oncontextmenu="return false" ontouchstart="openSettings()" onmousedown="if(event.button===2)openSettings()">
+  <a href="index.html" class="nav-btn" id="homeBtn">
     <span class="nav-icon">🏠</span>
     <span class="nav-label">主页</span>
   </a>

@@ -978,6 +978,8 @@
 .theme-btn.active--light { background: var(--accent-lime-dim); border-color: var(--border-accent); color: var(--accent-lime); }
 </style>
 
+<script src="js/core.js"></script>
+
 <script>
 /* ── Search ── */
 let searchEngine = 'bing';
@@ -1203,6 +1205,20 @@ function saveSettings() {
   settings.githubToken = document.getElementById('inputGithubToken').value.trim();
   settings.gistId = document.getElementById('inputGistId').value.trim();
   saveSettingsToStorage();
+  // Also sync to core.js localStorage keys so it can read them on init
+  if (typeof STORAGE_KEYS !== 'undefined') {
+    if (settings.githubToken) localStorage.setItem(STORAGE_KEYS.TOKEN, settings.githubToken);
+    if (settings.gistId) localStorage.setItem(STORAGE_KEYS.GIST_ID, settings.gistId);
+  }
+  // Trigger core re-init with new credentials
+  if (typeof core !== 'undefined' && settings.githubToken) {
+    core.login(settings.githubToken).then(() => {
+      document.getElementById('settingsStatus').innerHTML = '<span style="color:var(--accent-lime)">✓ 已保存，正在连接GitHub...</span>';
+    }).catch(() => {
+      document.getElementById('settingsStatus').innerHTML = '<span style="color:#F87171">✓ 设置已保存，但GitHub连接失败</span>';
+    });
+    return;
+  }
   document.getElementById('settingsStatus').innerHTML = '<span style="color:var(--accent-lime)">✓ 设置已保存</span>';
   setTimeout(() => {
     document.getElementById('settingsStatus').innerHTML = '';
